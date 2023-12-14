@@ -1,0 +1,49 @@
+services:
+  - name: console
+    source: docker
+    image: registry.dashwave.io/davinci:test
+    ports:
+      - 80:8080
+    env:
+      - DASHWAVE_CONSOLE_PORT
+  - name: nucleon
+    source: local
+    path: /Users/burnerlee/Projects/dashwave/nucleon
+    exec:
+      - "./local_deploy.sh"
+  # - name: nucleon_db
+  #   source: docker
+  #   image: registry.dashwave.io/dashwave/nucleon_db:latest
+  #   ports:
+  #     - 5432:5432
+  #   env:
+  #     - POSTGRES_USER
+  #     - POSTGRES_PASSWORD
+  #   pre:
+  #     - command: 
+  - name: poolmanager
+    source: local
+    path: /Users/burnerlee/Projects/dashwave/poolmanager
+    exec:
+      - "./local_deploy.sh"
+    pre:
+      - fetch-pm-db
+commands:
+  - command: fetch-pm-db
+    path: /Users/burnerlee/Projects/dashwave/poolmanager
+    steps:
+      - "ssh azureuser@apidev.dashwave.io 'docker cp dashwave_poolmanager:/data/bolt_db/poolmanager.db ~/.'"
+      - "scp azureuser@apidev.dashwave.io:~/poolmanager.db ."
+  - command: npm-build
+    path: /home/username/nucleon
+    steps:
+      - "npm run build"
+env:
+  - name: DASHWAVE_CONSOLE_PORT
+    value: 8080
+  - name: DASHWAVE_NUCLEON_PORT
+    value: 8081
+  - name: DASHWAVE_POOLMANAGER_PORT
+    value: 8082
+  - name: SOME
+    value: some

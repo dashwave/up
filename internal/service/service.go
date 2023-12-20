@@ -16,12 +16,14 @@ func (s *Service) Deploy(ctx context.Context) error {
 	switch s.Source {
 	case "docker":
 		d := &dockerService{
-			Name:    s.Name,
-			Image:   s.Image,
-			Ports:   s.Ports,
-			Env:     s.Env,
-			Pre:     s.Pre,
-			Volumes: s.Volumes,
+			Name:          s.Name,
+			ContainerName: s.ContainerName,
+			Image:         s.Image,
+			Ports:         s.Ports,
+			Env:           s.Env,
+			Pre:           s.Pre,
+			Volumes:       s.Volumes,
+			Networks:      s.Networks,
 		}
 		if err := d.validate(ctx); err != nil {
 			return err

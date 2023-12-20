@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
@@ -62,10 +63,21 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while getting host configs: %v", err)
 	}
-	resp, err := client.ContainerCreate(ctx, containerConfigs, hostConfigs, nil, nil, d.Name)
+	fmt.Println("Creating container...")
+	if d.ContainerName == "" {
+		d.ContainerName = d.Name
+	}
+	endpointConfigs := map[string]*network.EndpointSettings{}
+	for _, p := range d.Networks {
+		endpointConfigs[p] = &network.EndpointSettings{}
+	}
+	resp, err := client.ContainerCreate(ctx, containerConfigs, hostConfigs, &network.NetworkingConfig{
+		EndpointsConfig: endpointConfigs,
+	}, nil, d.ContainerName)
 	if err != nil {
 		return fmt.Errorf("error while creating container: %v", err)
 	}
+	fmt.Println("Container created with ID:", resp.ID)
 	if err := client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("error while starting container: %v", err)
 	}
@@ -84,7 +96,7 @@ func CleanupDockerContainers(ctx context.Context, completed chan bool) {
 	filter := filters.NewArgs()
 	filter.Add("label", "starter=up")
 	// List all containers
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{Filters: filter})
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{Filters: filter, All: true})
 	if err != nil {
 		log.Fatalf("Error listing containers: %v", err)
 	}
@@ -94,7 +106,7 @@ func CleanupDockerContainers(ctx context.Context, completed chan bool) {
 		// Kill the container
 		if err := cli.ContainerKill(ctx, container.ID, "SIGKILL"); err != nil {
 			log.Printf("Error killing container %s: %v", container.ID, err)
-			continue
+			// continue
 		}
 
 		// Remove the container
@@ -105,4 +117,23 @@ func CleanupDockerContainers(ctx context.Context, completed chan bool) {
 
 	fmt.Println("All containers have been killed and removed")
 	completed <- true
+}
+
+func (d *DockerNetwork) Create(ctx context.Context) error {
+	cli, err := newDockerClient(ctx)
+	if err != nil {
+		return fmt.Errorf("error while creating docker client: %v", err)
+	}
+	_, err = cli.NetworkCreate(ctx, d.Name, types.NetworkCreate{
+		Driver:         d.Driver,
+		Attachable:     true,
+		CheckDuplicate: true,
+		Labels: map[string]string{
+			"starter": "up",
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error while creating network: %v", err)
+	}
+	return nil
 }

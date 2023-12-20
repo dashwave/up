@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,14 +13,14 @@ import (
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "up",
 	Short: "runs the specified deployment",
 	Long:  "runs the specified deployment",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		ctx, cancel := context.WithCancel(ctx)
 		if err := deploy.Deploy(ctx, deploymentFile); err != nil {
-			panic(err)
+			fmt.Printf("error deploying: %v\n", err)
 		}
 		cleanupCompleted := make(chan bool)
 		go service.CleanupDockerContainers(ctx, cleanupCompleted)

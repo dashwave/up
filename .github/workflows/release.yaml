@@ -1,0 +1,62 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [macos-11, ubuntu-latest]
+        goarch: [amd64, arm64]
+        include:
+          - platform: macos-11
+            goos: darwin
+            goarch: arm64
+          - platform: ubuntu-latest
+            goos: linux
+            goarch: amd64
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '^1.17'
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        env GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o up_${{ matrix.goos }}_${{ matrix.goarch }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: up_${{ matrix.goos }}_${{ matrix.goarch }}
+        path: up_${{ matrix.goos }}_${{ matrix.goarch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body: "Description of the release"
+          assets: |
+            ./artifacts/*

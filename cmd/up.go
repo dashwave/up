@@ -8,6 +8,7 @@ import (
 )
 
 var deploymentFile string
+var background bool
 
 var rootCmd = &cobra.Command{
 	Use:   "up",
@@ -28,5 +29,7 @@ func Execute() {
 
 func init() {
 	runCmd.Flags().StringVarP(&deploymentFile, "file", "f", "up.yaml", "deployment file to use")
+	runCmd.Flags().BoolVarP(&background, "background", "d", false, "run in background")
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(downCmd)
 }

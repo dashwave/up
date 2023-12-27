@@ -11,7 +11,7 @@ func Deploy(ctx context.Context, configFile string) error {
 	if err := service.InitConfigFromYaml(ctx, configFile); err != nil {
 		return err
 	}
-	fmt.Println(service.UpConfigs.Services)
+	fmt.Println(service.UpConfigs)
 	for _, n := range service.UpConfigs.Networks {
 		if err := n.Create(ctx); err != nil {
 			fmt.Printf("error creating network %s: %v\n", n.Name, err)

@@ -1,17 +1,23 @@
 package service
 
 type Service struct {
-	Name          string   `yaml:"name"`
-	ContainerName string   `yaml:"container_name,omitempty"`
-	Source        string   `yaml:"source"`
-	Image         string   `yaml:"image,omitempty"`
-	Path          string   `yaml:"path,omitempty"`
-	Ports         []string `yaml:"ports"`
-	Volumes       []string `yaml:"volumes"`
-	Env           []string `yaml:"env"`
-	Pre           []string `yaml:"pre,omitempty"`
-	Exec          []string `yaml:"exec,omitempty"`
-	Networks      []string `yaml:"networks,omitempty"`
+	Name          string      `yaml:"name"`
+	ContainerName string      `yaml:"container_name,omitempty"`
+	Source        string      `yaml:"source"`
+	Image         string      `yaml:"image,omitempty"`
+	Path          string      `yaml:"path,omitempty"`
+	Ports         []string    `yaml:"ports"`
+	Volumes       []string    `yaml:"volumes"`
+	Env           []string    `yaml:"env"`
+	Pre           []string    `yaml:"pre,omitempty"`
+	Exec          []string    `yaml:"exec,omitempty"`
+	Networks      []string    `yaml:"networks,omitempty"`
+	AuthConfig    *authConfig `yaml:"auth,omitempty"`
+}
+
+type authConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type Command struct {
@@ -36,6 +42,7 @@ type dockerService struct {
 	Env           []string
 	Pre           []string
 	Networks      []string
+	AuthConfig    *authConfig
 }
 
 type Config struct {

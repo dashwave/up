@@ -1,0 +1,133 @@
+services:
+  - name: nucleon_db
+    source: docker
+    container_name: nucleon_db
+    image: postgres:14
+    env:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    ports:
+      - 5432:5555
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+    networks:
+      - dashwave
+  - name: poolmanager
+    source: docker
+    image: registry.dashwave.io/dashwave-pm_linux_amd64:local-deployment-1d0b41
+    container_name: poolmanager
+    volumes:
+      - /Users/burnerlee/Projects/dashwave/poolmanager/poolmanager.db:/root/poolmanager.db
+    ports:
+      - 9001:9001
+    networks:
+      - dashwave
+    env:
+      - SCIVIR_BASE
+      - NATIVE_BUILDER_DEFAULT_IMAGE
+      - FLUTTER_BUILDER_DEFAULT_IMAGE
+      - EMULATOR_DEFAULT_IMAGE
+      - ENABLE_HEALTH_CHECKER
+      - HEALTH_CHECKER_INTERVAL
+      - HEALTH_CHECK_RETRIES
+      - HTTP_PROBE_TIMEOUT
+      - UNHEALTHY_INSTANCE_RETRY_TIME
+      - BUILDER_WARMUP_TIME
+      - EMULATOR_WARMUP_TIME
+      - SERVICE_NAME
+      - ENABLE_REVOKER
+      - REVOKER_INTERVAL
+      - BUILDER_INACTIVITY
+      - EMULATOR_INACTIVITY
+      - SHARED_EMULATOR_INACTIVITY
+      - ENABLE_BUILDER_BUFFER_MANAGER
+      - BUILDER_BUFFER
+      - BUILDER_ASG
+      - ENABLE_EMULATOR_BUFFER_MANAGER
+      - EMULATOR_BUFFER
+      - EMULATOR_ASG
+      - ENV
+      - OTEL_EXPORTER_ENDPOINT
+      - VAULT_TOKEN
+env:
+  - ENV=ci-test
+  - POSTGRES_USER=dashwave_root
+  - POSTGRES_PASSWORD=root
+  - POSTGRES_DB=dashwave_central
+  - DB_HOST=nucleon_db
+  - DB_DRIVER=postgres
+  - API_SECRET=98hbun98h
+  - DB_USER=dashwave_root
+  - DB_PASSWORD=root
+  - DB_NAME=dashwave_central
+  - DB_PORT=5432
+  - SCIVIR_BASE=https://scivirdev.dashwave.io
+  - PM_BASE=poolmanager
+  - CONSOLE_URL=console
+  - USER_SPACES_LIMIT=1
+  - SPACE_INSTANCES_LIMIT=2
+  - PREVIEW_MODE=NONE
+  - STATUS_POLLING_TIME=5
+  - DEFAULT_ORG=true
+  - VAULT_TOKEN=hvs.ujnsShjjYEXv4fGSmLcv4SUI
+  - DEFAULT_ORGANISATION_REGION=us-east-1
+  - SERVICE_NAME=nucleon
+  - SENDGRID_SENDER_EMAIL=hello@dashwave.io
+  - INVITE_MAIL_SUBJECT=Dashwave Emulation Invite
+  - SENDGRID_TEMPLATE_ID=d-f3cd543a49e44dc2ac8caf2325a69e9b
+  - SENDGRID_SEND_API=https://api.sendgrid.com/v3/mail/send
+  - SENTINEL_ENDPOINT=https://sentinel.dashwave.io
+  - OTEL_EXPORTER_ENDPOINT=20.219.14.232:4317
+  - GITLAB_KEY=3946b942301f651c2896f643320589f68d254664baf691e300645110b751c255
+  - GITLAB_SECRET=gloas-f51aa5a27fc80eb4c711e26dea439aca5de2268ce51aace82f6f84f1c30a11f7
+  - GITLAB_CALLBACK=console
+  - GITLAB_KEY_LOCAL=4cf55c9bc058ebac31f3a5d88cec3d5f869cc62fcf191068289642ba023bc8cb
+  - GITLAB_SECRET_LOCAL=gloas-9469130661cdb1c97e1b0f5213ef1f5ed5e114a1bbe73db77fb7bd1c8fd5a273
+  - GITLAB_CALLBACK_LOCAL=http://127.0.0.1:3000/oauth/gitlab/callback
+  - SCIVIR_BASE=https://scivirdev.dashwave.io
+  - NATIVE_BUILDER_DEFAULT_IMAGE=registry.dashwave.io/android-builder:amd64
+  - FLUTTER_BUILDER_DEFAULT_IMAGE=registry.dashwave.io/flutter-builder:latest
+  - EMULATOR_DEFAULT_IMAGE=registry.dashwave.io/emulator_android-29_amd64:latest
+  - ENABLE_HEALTH_CHECKER=true
+  - HEALTH_CHECKER_INTERVAL=30s
+  - HEALTH_CHECK_RETRIES=3
+  - HTTP_PROBE_TIMEOUT=8s
+  - UNHEALTHY_INSTANCE_RETRY_TIME=6s
+  - BUILDER_WARMUP_TIME=1m30s
+  - EMULATOR_WARMUP_TIME=5m
+  - SERVICE_NAME=pm
+  - ENABLE_REVOKER=true
+  - REVOKER_INTERVAL=2m
+  - BUILDER_INACTIVITY=6h
+  - EMULATOR_INACTIVITY=4h
+  - SHARED_EMULATOR_INACTIVITY=1h
+  - ENABLE_BUILDER_BUFFER_MANAGER=false
+  - BUILDER_BUFFER=5
+  - BUILDER_ASG=build-runner-autoscaler-test
+  - ENABLE_EMULATOR_BUFFER_MANAGER=false
+  - EMULATOR_BUFFER=3
+  - EMULATOR_ASG=emulator-runner-autoscaler-test
+  - OTEL_EXPORTER_ENDPOINT=20.219.14.232:4317
+  - VAULT_TOKEN=hvs.ujnsShjjYEXv4fGSmLcv4SUI
+  - VITE_API_BASE_URL=http://localhost:8080
+  - VITE_WS_BASE_URL=ws://localhost:8080
+  - GOOGLE_KEY=126853618621-0n5cup6669tsd0dktc0q6hl6ms1r8p2u.apps.googleusercontent.com
+  - GOOGLE_SECRET=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
+  - GOOGLE_CALLBACK=https://consoledev.dashwave.io/oauth/google/callback
+  - GOOGLE_KEY_LOCAL=126853618621-hstu4nh6e3bv9ijfte0gcp7o4k1pa6cs.apps.googleusercontent.com
+  - GOOGLE_SECRET_LOCAL=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
+  - GOOGLE_CALLBACK_LOCAL=http://127.0.0.1:3000/oauth/google/callback
+  - GITHUB_KEY=53e6ba34ef9e2fd943a3
+  - GITHUB_SECRET=052018ff940c5bad6369f9052861cecc0f31aca9
+  - GITHUB_CALLBACK=https://consoledev.dashwave.io/oauth/github/callback
+  - GITHUB_KEY_LOCAL=8c1fd2c7bd461176eecf
+  - GITHUB_SECRET_LOCAL=9c48f96eefab3864c1bef352c30c5dd8b38e0ad5
+  - GITHUB_CALLBACK_LOCAL=http://127.0.0.1:3000/oauth/github/callback
+networks:
+  - name: dashwave
+    driver: bridge
+
+deploy:
+  - nucleon_db
+  - poolmanager

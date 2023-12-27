@@ -86,9 +86,6 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 }
 
 func CleanupDockerContainers(ctx context.Context, completed chan bool) {
-	<-ctx.Done() // Wait for the context to be canceled
-
-	ctx = context.Background()
 	cli, err := newDockerClient(ctx)
 	if err != nil {
 		panic(fmt.Errorf("error while cleaning up docker containers: %v", err))

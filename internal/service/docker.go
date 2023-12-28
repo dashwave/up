@@ -72,15 +72,20 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	}
 
 	fmt.Println("Pulling/Updating image...")
-	authConfigs := registry.AuthConfig{
-		Username: d.AuthConfig.Username,
-		Password: d.AuthConfig.Password,
+
+	var authStr string
+
+	if d.AuthConfig != nil {
+		authConfigs := registry.AuthConfig{
+			Username: d.AuthConfig.Username,
+			Password: d.AuthConfig.Password,
+		}
+		encodedJSON, err := json.Marshal(authConfigs)
+		if err != nil {
+			return fmt.Errorf("error while marshalling auth config: %v", err)
+		}
+		authStr = base64.URLEncoding.EncodeToString(encodedJSON)
 	}
-	encodedJSON, err := json.Marshal(authConfigs)
-	if err != nil {
-		return fmt.Errorf("error while marshalling auth config: %v", err)
-	}
-	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 	reader, err := client.ImagePull(ctx, containerConfigs.Image, types.ImagePullOptions{
 		RegistryAuth: authStr,
 	})

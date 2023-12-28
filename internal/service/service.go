@@ -24,6 +24,7 @@ func (s *Service) Deploy(ctx context.Context) error {
 			Pre:           s.Pre,
 			Volumes:       s.Volumes,
 			Networks:      s.Networks,
+			AuthConfig:    s.AuthConfig,
 		}
 		if err := d.validate(ctx); err != nil {
 			return err

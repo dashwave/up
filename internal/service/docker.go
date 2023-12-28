@@ -2,13 +2,18 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 )
 
@@ -26,7 +31,8 @@ func (d *dockerService) getContainerConfigs(ctx context.Context) (*container.Con
 		return nil, fmt.Errorf("error getting docker env configs: %v", err)
 	}
 	return &container.Config{
-		Image:        d.Image,
+		Image: d.Image,
+
 		Env:          dockerEnvs,
 		ExposedPorts: exposedPorts,
 		Labels: map[string]string{
@@ -55,6 +61,7 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while creating docker client: %v", err)
 	}
+
 	containerConfigs, err := d.getContainerConfigs(ctx)
 	if err != nil {
 		return fmt.Errorf("error while getting container configs: %v", err)
@@ -63,6 +70,25 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while getting host configs: %v", err)
 	}
+
+	fmt.Println("Pulling/Updating image...")
+	authConfigs := registry.AuthConfig{
+		Username: d.AuthConfig.Username,
+		Password: d.AuthConfig.Password,
+	}
+	encodedJSON, err := json.Marshal(authConfigs)
+	if err != nil {
+		return fmt.Errorf("error while marshalling auth config: %v", err)
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	reader, err := client.ImagePull(ctx, containerConfigs.Image, types.ImagePullOptions{
+		RegistryAuth: authStr,
+	})
+	if err != nil {
+		return fmt.Errorf("error while pulling image: %v", err)
+	}
+	io.Copy(os.Stdout, reader)
+
 	fmt.Println("Creating container...")
 	if d.ContainerName == "" {
 		d.ContainerName = d.Name

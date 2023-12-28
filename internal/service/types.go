@@ -12,7 +12,7 @@ type Service struct {
 	Pre           []string    `yaml:"pre,omitempty"`
 	Exec          []string    `yaml:"exec,omitempty"`
 	Networks      []string    `yaml:"networks,omitempty"`
-	AuthConfig    *authConfig `yaml:"auth,omitempty"`
+	Auth          *authConfig `yaml:"auth,omitempty"`
 }
 
 type authConfig struct {

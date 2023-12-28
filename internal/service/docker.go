@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -26,7 +28,8 @@ func (d *dockerService) getContainerConfigs(ctx context.Context) (*container.Con
 		return nil, fmt.Errorf("error getting docker env configs: %v", err)
 	}
 	return &container.Config{
-		Image:        d.Image,
+		Image: d.Image,
+
 		Env:          dockerEnvs,
 		ExposedPorts: exposedPorts,
 		Labels: map[string]string{
@@ -55,6 +58,7 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while creating docker client: %v", err)
 	}
+
 	containerConfigs, err := d.getContainerConfigs(ctx)
 	if err != nil {
 		return fmt.Errorf("error while getting container configs: %v", err)
@@ -63,6 +67,14 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while getting host configs: %v", err)
 	}
+
+	fmt.Println("Pulling/Updating image...")
+	reader, err := client.ImagePull(ctx, containerConfigs.Image, types.ImagePullOptions{})
+	if err != nil {
+		return fmt.Errorf("error while pulling image: %v", err)
+	}
+	io.Copy(os.Stdout, reader)
+
 	fmt.Println("Creating container...")
 	if d.ContainerName == "" {
 		d.ContainerName = d.Name

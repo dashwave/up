@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 )
 
@@ -26,14 +27,14 @@ func (d *dockerService) getContainerConfigs(ctx context.Context) (*container.Con
 	if err != nil {
 		return nil, fmt.Errorf("error parsing port configs: %v", err)
 	}
-	dockerEnvs, err := getDockerEnvConfigs(ctx, d.Env)
+	envsFromFiles, err := parseEnvFiles(ctx, d.EnvFiles)
 	if err != nil {
-		return nil, fmt.Errorf("error getting docker env configs: %v", err)
+		return nil, fmt.Errorf("error parsing env files: %v", err)
 	}
+	envsFromFiles = append(envsFromFiles, d.Env...)
 	return &container.Config{
-		Image: d.Image,
-
-		Env:          dockerEnvs,
+		Image:        d.Image,
+		Env:          envsFromFiles,
 		ExposedPorts: exposedPorts,
 		Labels: map[string]string{
 			"starter": "up",
@@ -75,7 +76,7 @@ func (d *dockerService) deployDocker(ctx context.Context) error {
 
 	var authStr string
 
-	if d.AuthConfig != nil {
+	if d.Auth {
 		authConfigs := registry.AuthConfig{
 			Username: d.AuthConfig.Username,
 			Password: d.AuthConfig.Password,
@@ -162,6 +163,21 @@ func (d *DockerNetwork) Create(ctx context.Context) error {
 	})
 	if err != nil {
 		return fmt.Errorf("error while creating network: %v", err)
+	}
+	return nil
+}
+
+func CreateDockerVolume(ctx context.Context, name string) error {
+	cli, err := newDockerClient(ctx)
+	if err != nil {
+		return fmt.Errorf("error while creating docker client: %v", err)
+	}
+	options := volume.CreateOptions{
+		Name: name,
+	}
+	_, err = cli.VolumeCreate(ctx, options)
+	if err != nil {
+		return fmt.Errorf("error while creating volume: %v", err)
 	}
 	return nil
 }

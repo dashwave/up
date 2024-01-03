@@ -18,6 +18,12 @@ func Deploy(ctx context.Context, configFile string) error {
 			// return err
 		}
 	}
+	for _, v := range service.UpConfigs.Volumes {
+		if err := service.CreateDockerVolume(ctx, v); err != nil {
+			fmt.Printf("error creating volume %s: %v\n", v, err)
+			// return err
+		}
+	}
 	for _, d := range service.UpConfigs.Deploy {
 		var s service.Service
 		serviceFound := false
@@ -34,11 +40,9 @@ func Deploy(ctx context.Context, configFile string) error {
 		if err := s.Validate(ctx); err != nil {
 			return err
 		}
-		go func(s service.Service) {
-			if err := s.Deploy(ctx); err != nil {
-				fmt.Println("error deploying service", err)
-			}
-		}(s)
+		if err := s.Deploy(ctx); err != nil {
+			fmt.Println("error deploying service", err)
+		}
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 )
 
 func (s *Service) Validate(ctx context.Context) error {
@@ -15,6 +16,12 @@ func (s *Service) Validate(ctx context.Context) error {
 func (s *Service) Deploy(ctx context.Context) error {
 	switch s.Source {
 	case "docker":
+		if s.Auth && s.AuthConfig == nil {
+			s.AuthConfig = &AuthConfig{
+				Username: os.Getenv("DOCKER_USERNAME"),
+				Password: os.Getenv("DOCKER_PASSWORD"),
+			}
+		}
 		d := &dockerService{
 			Name:          s.Name,
 			ContainerName: s.ContainerName,
@@ -24,7 +31,9 @@ func (s *Service) Deploy(ctx context.Context) error {
 			Pre:           s.Pre,
 			Volumes:       s.Volumes,
 			Networks:      s.Networks,
-			AuthConfig:    s.Auth,
+			Auth:          s.Auth,
+			EnvFiles:      s.EnvFiles,
+			AuthConfig:    s.AuthConfig,
 		}
 		if err := d.validate(ctx); err != nil {
 			return err
@@ -41,8 +50,9 @@ func (s *Service) Deploy(ctx context.Context) error {
 		if err := l.validate(ctx); err != nil {
 			return err
 		}
-		return l.deployLocal(ctx)
+		go l.deployLocal(ctx)
 	default:
 		return fmt.Errorf("unknown source: %s", s.Source)
 	}
+	return nil
 }

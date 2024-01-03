@@ -1,23 +1,29 @@
 package service
 
 import (
+	"bufio"
 	"context"
-	"fmt"
+	"os"
+	"path"
 	"strings"
 )
 
-func getDockerEnvConfigs(ctx context.Context, env []string) ([]string, error) {
-	dockerEnvs := make([]string, 0)
-	for _, e := range env {
-		for _, envVar := range UpConfigs.Env {
-			envSplit := strings.Split(string(envVar), "=")
-			if len(envSplit) < 2 {
-				fmt.Printf("invalid env variable %s\n", envVar)
-			}
-			if e == envSplit[0] {
-				dockerEnvs = append(dockerEnvs, string(envVar))
+func parseEnvFiles(ctx context.Context, files []string) ([]string, error) {
+	envs := make([]string, 0)
+	for _, f := range files {
+		filePath := path.Join(os.Getenv("PWD"), f)
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.Contains(line, "=") {
+				envs = append(envs, line)
 			}
 		}
 	}
-	return dockerEnvs, nil
+	return envs, nil
 }

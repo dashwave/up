@@ -12,12 +12,9 @@ type Service struct {
 	Pre           []string    `yaml:"pre,omitempty"`
 	Exec          []string    `yaml:"exec,omitempty"`
 	Networks      []string    `yaml:"networks,omitempty"`
-	Auth          *authConfig `yaml:"auth,omitempty"`
-}
-
-type authConfig struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Auth          bool        `yaml:"auth,omitempty"`
+	EnvFiles      []string    `yaml:"env_files,omitempty"`
+	AuthConfig    *AuthConfig `yaml:"auth_config,omitempty"`
 }
 
 type Command struct {
@@ -42,7 +39,9 @@ type dockerService struct {
 	Env           []string
 	Pre           []string
 	Networks      []string
-	AuthConfig    *authConfig
+	Auth          bool
+	EnvFiles      []string
+	AuthConfig    *AuthConfig
 }
 
 type Config struct {
@@ -51,6 +50,12 @@ type Config struct {
 	Env      []EnvVar         `yaml:"env"`
 	Networks []*DockerNetwork `yaml:"networks"`
 	Deploy   []string         `yaml:"deploy"`
+	Volumes  []string         `yaml:"volumes"`
+}
+
+type AuthConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type localService struct {
